@@ -42,6 +42,18 @@ public class Main {
                     decl(list, tokens[1]);
                 else if(statement.equals("popv"))
                     popv(list, tokens[1]);
+                else if(statement.equals("add"))
+                    add(list);
+                else if(statement.equals("sub"))
+                    sub(list);
+                else if(statement.equals("mul"))
+                    mul(list);
+                else if(statement.equals("div")){
+                    div(list);
+                }
+                else if(statement.equals("swp")){
+                    swp(list);
+                }
             }
             printList(list);
         } catch (final IOException e) {
@@ -98,7 +110,10 @@ public class Main {
         Integer index = varOffsetTable.get(name);
         pushi(list, Integer.toString(index));
 
-        //update varTable
+        //update stack from intTable
+        Integer val = intTable.get(name);
+        stack.add(val);
+        varLoc++;
         
         byte[] opCode = {74}; // pushvi 74
         addOpCode(list, opCode);
@@ -131,6 +146,27 @@ public class Main {
         byte b = (byte)146;
         byte[] opCode2 = {b};
         addOpCode(list, opCode2);
+    }
+
+    public static void add(ArrayList<byte[]> list){
+        byte[] opCode = {100}; 
+        addOpCode(list, opCode);
+    }
+    public static void sub(ArrayList<byte[]> list){
+        byte[] opCode = {104}; 
+        addOpCode(list, opCode);
+    }
+    public static void mul(ArrayList<byte[]> list){
+        byte[] opCode = {108}; 
+        addOpCode(list, opCode);
+    }
+    public static void div(ArrayList<byte[]> list){
+        byte[] opCode = {112}; 
+        addOpCode(list, opCode);
+    }
+    public static void swp(ArrayList<byte[]> list){
+        byte[] opCode = {94}; 
+        addOpCode(list, opCode);
     }
 
     public static void ret(ArrayList<byte[]> list){
@@ -171,7 +207,7 @@ public class Main {
     public static void printList(ArrayList<byte[]> list){
         FileOutputStream fos;
         try{
-            fos = new FileOutputStream("C:\\Users\\Nathan\\Desktop\\simple_variables_output.bin");
+            fos = new FileOutputStream("C:\\Users\\Nathan\\Desktop\\simple_math_output.bin");
 
             for(byte[] b : list){
                 try{
