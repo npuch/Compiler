@@ -51,8 +51,17 @@ public class Main {
                 else if(statement.equals("div")){
                     div(list);
                 }
+                else if(statement.equals("cmpe"))
+                    cmpe(list);
+                else if(statement.equals("cmplt"))
+                    cmplt(list);
+                else if(statement.equals("cmpgt"))
+                    cmpgt(list);
                 else if(statement.equals("swp")){
                     swp(list);
+                }
+                else if(statement.equals("popm")){
+                    popm(list, tokens[1]);
                 }
             }
             printList(list);
@@ -125,7 +134,7 @@ public class Main {
         pushi(list, Integer.toString(offsetVar));
         
         //set var equal to value in intTable
-        Integer value = stack.get(offsetVar);
+        Integer value = stack.get(varLoc -1);
         intTable.put(name, value);
         varLoc--;
 
@@ -169,6 +178,29 @@ public class Main {
         addOpCode(list, opCode);
     }
 
+    public static void cmpe(ArrayList<byte[]> list){
+        byte b = (byte)132;
+        byte[] opCode2 = {b};
+        addOpCode(list, opCode2);
+    }
+    public static void cmplt(ArrayList<byte[]> list){
+        byte b = (byte)136;
+        byte[] opCode2 = {b};
+        addOpCode(list, opCode2);
+    }
+    public static void cmpgt(ArrayList<byte[]> list){
+        byte b = (byte)140;
+        byte[] opCode2 = {b};
+        addOpCode(list, opCode2);
+    }
+
+    public static void popm(ArrayList<byte[]> list, String value){
+        pushi(list, value);
+
+        byte[] opCode2 = {76};
+        addOpCode(list, opCode2);
+    }
+
     public static void ret(ArrayList<byte[]> list){
         pushi(list, "0");
         byte[] opCode = {77};  //77 popa 
@@ -207,7 +239,7 @@ public class Main {
     public static void printList(ArrayList<byte[]> list){
         FileOutputStream fos;
         try{
-            fos = new FileOutputStream("C:\\Users\\Nathan\\Desktop\\simple_math_output.bin");
+            fos = new FileOutputStream("C:\\Users\\Nathan\\Desktop\\other_instructions_output.bin");
 
             for(byte[] b : list){
                 try{

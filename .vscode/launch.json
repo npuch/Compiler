@@ -10,7 +10,7 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "Compiler_753736e3",
-            "args": "Simple_Math.txt"
+            "args": "Other_Instructions.txt"
         },
         {
             "type": "java",
