@@ -11,6 +11,8 @@ public class Main {
     static Hashtable<String, Integer> intTable = new Hashtable<String, Integer>(); //holds variables contents
     static Hashtable<String, Integer> varOffsetTable = new Hashtable<String, Integer>(); //holds var's offset
     static Hashtable<Integer, String> offsetVarTable = new Hashtable<Integer, String>();
+    static Hashtable<String, Integer> labTable = new Hashtable<String, Integer>();
+    static Hashtable<String, ArrayList<Integer>> labFix = new Hashtable<String, ArrayList<Integer>>();
     static ArrayList<Integer> stack = new ArrayList<Integer>(); 
     public static void reader(String fileName){
         BufferedReader br = null;
@@ -63,7 +65,19 @@ public class Main {
                 else if(statement.equals("popm")){
                     popm(list, tokens[1]);
                 }
+                else if(statement.equals("jmp"))
+                    jmp(list, tokens[1]);
+                else if(statement.equals("jmpc"))
+                    jmpc(list, tokens[1]);
+                else if(statement.equals("lab")){
+                    //lab(list, tokens[1]);
+                }
+                else if(statement.equals("peek"))
+                    peek(list, tokens[1], tokens[2]);
+                else if(statement.equals("poke"))
+                    poke(list, tokens[1], tokens[2]);
             }
+            fixJumps(list);
             printList(list);
         } catch (final IOException e) {
             System.out.println("Could not read from file");
@@ -74,6 +88,43 @@ public class Main {
             finally{System.out.println("Attempt to read file done");}
         }
     }
+    
+     public static void fixJumps(ArrayList<byte[]> list) {
+        //go through all pc's in array list of each labfix and at that pc, insert correct pc with the lable
+        for (String key : labFix.keySet()){
+            for(int i = 0; i < labFix.get(key).size(); i++){
+                //int sz = labFix.get(key).size() - 1;
+                //int val = labFix.get(key).get(sz);
+                int corLoc =  labTable.get(key);
+
+                int ind = labFix.get(key).get(i);
+                byte[] opCode = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(corLoc).array();
+                //byte[] opCode = {(byte) correctLoccation};
+                list.set(ind, opCode);
+            }
+        }
+    }
+
+    public static void peek(ArrayList<byte[]> list, String var, String val){
+        String offset = Integer.toString(varOffsetTable.get(var));
+        pushi(list, offset);
+        
+        pushi(list, val);
+        
+        byte[] opCode = {86}; //peeki
+        addOpCode(list, opCode);
+    }
+
+    public static void poke(ArrayList<byte[]> list, String val, String var){
+        String offset = Integer.toString(varOffsetTable.get(var));
+        pushi(list, offset);
+        
+        pushi(list, val);
+
+        byte[] opCode = {90}; //pokei
+        addOpCode(list, opCode);
+    }
+
     public static void subr(ArrayList<byte[]> list){
         pushi(list, "16");
         pushi(list, "17");
@@ -90,6 +141,10 @@ public class Main {
         byte b = (byte)146;
         byte[] opCode = {b};
         addOpCode(list, opCode);
+    }
+
+    public static void lab(ArrayList<byte[]> list, String name){
+        labTable.put(name, pc);
     }
 
     //for pusing integers and adding to table
@@ -215,6 +270,53 @@ public class Main {
         offsetVarTable.put(offset, name);
         offset++;
     }
+    public static void jmp(ArrayList<byte[]> list, String name) {
+        //pushi(list, value);
+        String strVal;
+        if (labTable.containsKey(name)){
+            int val = labTable.get(name);
+            strVal = Integer.toString(val);
+            //labFix.get(name).add(list.size()+1);
+        }
+        else{
+            if (labFix.containsKey(name)){
+                labFix.get(name).add(list.size()+1);
+            }
+            else{
+                ArrayList<Integer> tempArr = new ArrayList<Integer>();
+                tempArr.add(list.size()+1);
+                labFix.put(name, tempArr);
+            }
+            strVal = Integer.toString(list.size()+1);
+        }
+        pushi(list,  strVal);
+        byte[] opCode = {36};
+        addOpCode(list, opCode);
+    }
+
+    public static void jmpc(ArrayList<byte[]> list, String name) {
+        //pushi(list, value);
+        String  strVal;
+        if (labTable.containsKey(name)){
+            int val = labTable.get(name);
+            strVal = Integer.toString(val);
+            //labFix.get(name).add(list.size()+1);
+        }
+        else{
+            if (labFix.containsKey(name)){
+                labFix.get(name).add(list.size()+1);
+            }
+            else{
+                ArrayList<Integer> tempArr = new ArrayList<Integer>();
+                tempArr.add(list.size()+1);
+                labFix.put(name, tempArr);
+            }
+            strVal = Integer.toString(list.size()+1);
+        }
+        pushi(list,  strVal);
+        byte[] opCode = {40};
+        addOpCode(list, opCode);
+    }
 
     public static void addOpCode(ArrayList<byte[]> list, byte[] opCode){
         String preCode = String.format("%02x", opCode[0]);
@@ -239,7 +341,7 @@ public class Main {
     public static void printList(ArrayList<byte[]> list){
         FileOutputStream fos;
         try{
-            fos = new FileOutputStream("C:\\Users\\Nathan\\Desktop\\other_instructions_output.bin");
+            fos = new FileOutputStream("C:\\Users\\Nathan\\Desktop\\jumps_output.bin");
 
             for(byte[] b : list){
                 try{
